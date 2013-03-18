@@ -1,0 +1,92 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:nitro="http://www.bunchball.com/nitro">
+	
+
+	<head>
+		<title>Bunchball Interview Test</title>
+		
+	</head>
+	<body>		
+		<!--<script type="text/javascript" src="script.js"></script>-->
+
+		<button type="button" id="testAction" onclick="testAction()">Test Action</button>
+		"Click this Action 2 times to Complete a Challenge(7pts), Click for (1pt)"
+		<div id="userid"></div>
+		<div id="userpoints"></div>
+
+		<nitro:widget name="Leaderboard">Loading...</nitro:widget>
+
+		<nitro:widget name="Trophy Case">Loading...</nitro:widget>
+	
+<!-- Client-Side Nitro Javascript Library -->		
+<script src="http://assets.bunchball.com/scripts/nitro/current/nitro.js"  type="text/javascript"></script>
+<script>
+
+debugger;	
+
+			var queryString = document.URL;
+			var matches = queryString.match(/userId=([^&]*)/);
+			
+			if (matches != null )
+				var name = matches[1];
+			else
+				var name = "DefaultUser";
+			
+			var connectionParams={
+	    		apiKey : "9011b0381d844d3c95574cdcb26cf3e8",
+	    		server : "http://sandbox.bunchball.net/nitro/json", 
+            	userId : name,
+            	debug : true	
+			};
+    		var nitro = new Nitro(connectionParams); 
+
+    		nitro.showPendingNotifications();
+    		nitro.callAPI("method=user.getPointsBalance", "processResult", "userpoints", true);
+    		
+    		nitro.refreshNML();
+		
+function processResult(data, token) {
+	if (data == null) {
+		alert ('Error');
+		return;
+	}
+	if (data.Nitro.res == "err") {
+		alert (data.Nitro.Error.Message);
+		return;
+	}
+	
+	switch (data.Nitro.method) {
+		case "user.getPointsBalance":
+			balance = data.Nitro.Balance.points;
+			var elem = document.getElementById(token);
+			elem.innerHTML = name + " has " + balance + " points.";	
+			break;
+		case "user.creditPoints" :
+			balance = data.Nitro.User.points;
+			var elem = document.getElementById(token);
+			elem.innerHTML = name + " has " + balance + " points.";
+			break;
+		case "user.logAction" :
+			nitro.showPendingNotifications();	
+			nitro.refreshNML();
+			break;	
+	}
+}	
+
+function testAction(){
+	nitro.callAPI("method=user.creditPoints&points=1", "processResult", "userpoints", true);
+	nitro.callAPI("method=user.logAction&tags=test_Action", "processResult");
+	nitro.refreshNML();
+}
+
+// Checks Nitro for pending notifications every 5 seconds
+window.setInterval(function(){
+  nitro.showPendingNotifications();
+}, 5000);
+    	
+
+</script>
+
+
+
+</body>	
+</html>
